@@ -60,9 +60,9 @@ namespace eventus {
         event_queue() = default;
 
         // Adds an event handler which listens for the event and has an input parameter of type T.
-        template<typename T> void add_handler(event_type event, std::function<void(T)> handler);
-        // Adds an event handler which listest for the event and has no input parameter.
-        void add_handler(event_type event, std::function<void()> handler);
+        template<typename T> void add_handler(event_type event, handler<T> event_handler);
+        // Adds an event handler which listens for the event and has no input parameter.
+        void add_handler(event_type event, handler<void> event_handler);
         // Fires an event of the specified EventType, passing along the parameter of type T.
         template<typename T> void fire(event_type event, T parameter);
         // Fires an event of the specified EventType with no parameter.
@@ -70,7 +70,7 @@ namespace eventus {
 
     private:
         // Readbility aliases
-        template<typename T> using handlers = std::vector<std::function<void(T)>>;
+        template<typename T> using handlers = std::vector<handler<T>>;
         template<typename T> using ptr_handlers = std::shared_ptr<handlers<T>>;
         using handlers_void = std::vector<std::function<void()>>;
         using ptr_handlers_void = std::shared_ptr<handlers_void>;
@@ -86,19 +86,16 @@ namespace eventus {
 
     template<typename event_type>
     template<typename T>
-    void event_queue<event_type>::add_handler(event_type event, std::function<void(T)> handler) {
+    void event_queue<event_type>::add_handler(event_type event, handler<T> event_handler) {
         if (events.count(event) == 0) {
             events[event] = _eventus_util::lazy_type::create(ptr_handlers<T>(new handlers<T>(0)));
         }
-        _eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event])->emplace_back(handler);
+        _eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event])->emplace_back(event_handler);
     }
 
     template<typename event_type>
-    void event_queue<event_type>::add_handler(event_type event, std::function<void()> handler) {
-        if (events.count(event) == 0) {
-            events[event] = _eventus_util::lazy_type::create(ptr_handlers_void(new handlers_void(0)));
-        }
-        _eventus_util::lazy_type::cast<ptr_handlers_void>(events[event])->emplace_back(handler);
+    void event_queue<event_type>::add_handler(event_type event, handler<void> event_handler) {
+        return add_handler<void>(event, event_handler);
     }
 
     template<typename event_type>
