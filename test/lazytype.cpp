@@ -2,7 +2,7 @@
 #include "catch.hpp"
 #include "../eventus.hpp"
 
-using namespace eventus;
+using namespace _eventus_util;
 using namespace std;
 
 TEST_CASE("lazy_type", "[lazy_type]") {

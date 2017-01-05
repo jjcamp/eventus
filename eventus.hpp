@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace eventus {
+namespace _eventus_util {
     struct lazy_type {
         struct basetype {
             const std::type_info* typeinfo;
@@ -25,6 +25,26 @@ namespace eventus {
         std::unique_ptr<basetype> ptr;
     };
 
+    template<typename T>
+    lazy_type lazy_type::create(T value) {
+        auto lt = lazy_type();
+        auto tinfo = supertype<T>();
+        tinfo.value = value;
+        tinfo.typeinfo = &typeid(value);
+        lt.ptr = std::unique_ptr<supertype<T>>(new supertype<T>(tinfo));
+        return lt;
+    }
+
+    template<typename T>
+    T lazy_type::cast(lazy_type &c) {
+        if (typeid(T) != *c.ptr->typeinfo) {
+            throw std::bad_cast();
+        }
+        return ((supertype<T>*)c.ptr.get())->value;
+    }
+}
+
+namespace eventus {
     template<typename event_type>
     class event_queue {
     public:
@@ -52,31 +72,31 @@ namespace eventus {
         template<typename T>
         struct key_type<T, typename std::enable_if<std::is_enum<T>::value>::type> { typedef typename std::underlying_type<T>::type type; };
 
-        std::unordered_map<event_type, lazy_type, std::hash<typename key_type<event_type>::type>> events;
+        std::unordered_map<event_type, _eventus_util::lazy_type, std::hash<typename key_type<event_type>::type>> events;
     };
 
     template<typename event_type>
     template<typename T>
     void event_queue<event_type>::add_handler(event_type event, std::function<void(T)> handler) {
         if (events.count(event) == 0) {
-            events[event] = lazy_type::create(ptr_handlers<T>(new handlers<T>(0)));
+            events[event] = _eventus_util::lazy_type::create(ptr_handlers<T>(new handlers<T>(0)));
         }
-        lazy_type::cast<ptr_handlers<T>>(events[event])->emplace_back(handler);
+        _eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event])->emplace_back(handler);
     }
 
     template<typename event_type>
     void event_queue<event_type>::add_handler(event_type event, std::function<void()> handler) {
         if (events.count(event) == 0) {
-            events[event] = lazy_type::create(ptr_handlers_void(new handlers_void(0)));
+            events[event] = _eventus_util::lazy_type::create(ptr_handlers_void(new handlers_void(0)));
         }
-        lazy_type::cast<ptr_handlers_void>(events[event])->emplace_back(handler);
+        _eventus_util::lazy_type::cast<ptr_handlers_void>(events[event])->emplace_back(handler);
     }
 
     template<typename event_type>
     template<typename T>
     void event_queue<event_type>::fire(event_type event, T parameter) {
         if (events.count(event) == 1) {
-            for (auto h : *lazy_type::cast<ptr_handlers<T>>(events[event]).get()) {
+            for (auto h : *_eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event]).get()) {
                 h(parameter);
             }
         }
@@ -85,28 +105,10 @@ namespace eventus {
     template<typename event_type>
     void event_queue<event_type>::fire(event_type event) {
         if (events.count(event) == 1) {
-            for (auto h : *lazy_type::cast<ptr_handlers_void>(events[event]).get()) {
+            for (auto h : *_eventus_util::lazy_type::cast<ptr_handlers_void>(events[event]).get()) {
                 h();
             }
         }
-    }
-
-    template<typename T>
-    lazy_type lazy_type::create(T value) {
-        auto lt = lazy_type();
-        auto tinfo = supertype<T>();
-        tinfo.value = value;
-        tinfo.typeinfo = &typeid(value);
-        lt.ptr = std::unique_ptr<supertype<T>>(new supertype<T>(tinfo));
-        return lt;
-    }
-
-    template<typename T>
-    T lazy_type::cast(lazy_type &c) {
-        if (typeid(T) != *c.ptr->typeinfo) {
-            throw std::bad_cast();
-        }
-        return ((supertype<T>*)c.ptr.get())->value;
     }
 }
 
