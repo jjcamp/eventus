@@ -41,10 +41,10 @@ namespace eventus {
 
     private:
         // Readbility aliases
-        template<typename T> using vec_func_void = std::vector<std::function<void(T)>>;
-        template<typename T> using shared_vec_func_void = std::shared_ptr<vec_func_void<T>>;
-        using vec_func_void_void = std::vector<std::function<void()>>;
-        using shared_vec_func_void_void = std::shared_ptr<vec_func_void_void>;
+        template<typename T> using handlers = std::vector<std::function<void(T)>>;
+        template<typename T> using ptr_handlers = std::shared_ptr<handlers<T>>;
+        using handlers_void = std::vector<std::function<void()>>;
+        using ptr_handlers_void = std::shared_ptr<handlers_void>;
 
         // Templated structs to allow the use of enums as keys
         template<typename T, typename ENABLE = void>
@@ -59,24 +59,24 @@ namespace eventus {
     template<typename T>
     void event_queue<event_type>::add_handler(event_type event, std::function<void(T)> handler) {
         if (events.count(event) == 0) {
-            events[event] = lazy_type::create(shared_vec_func_void<T>(new vec_func_void<T>(0)));
+            events[event] = lazy_type::create(ptr_handlers<T>(new handlers<T>(0)));
         }
-        lazy_type::cast<shared_vec_func_void<T>>(events[event])->emplace_back(handler);
+        lazy_type::cast<ptr_handlers<T>>(events[event])->emplace_back(handler);
     }
 
     template<typename event_type>
     void event_queue<event_type>::add_handler(event_type event, std::function<void()> handler) {
         if (events.count(event) == 0) {
-            events[event] = lazy_type::create(shared_vec_func_void_void(new vec_func_void_void(0)));
+            events[event] = lazy_type::create(ptr_handlers_void(new handlers_void(0)));
         }
-        lazy_type::cast<shared_vec_func_void_void>(events[event])->emplace_back(handler);
+        lazy_type::cast<ptr_handlers_void>(events[event])->emplace_back(handler);
     }
 
     template<typename event_type>
     template<typename T>
     void event_queue<event_type>::fire(event_type event, T parameter) {
         if (events.count(event) == 1) {
-            for (auto h : *lazy_type::cast<shared_vec_func_void<T>>(events[event]).get()) {
+            for (auto h : *lazy_type::cast<ptr_handlers<T>>(events[event]).get()) {
                 h(parameter);
             }
         }
@@ -85,7 +85,7 @@ namespace eventus {
     template<typename event_type>
     void event_queue<event_type>::fire(event_type event) {
         if (events.count(event) == 1) {
-            for (auto h : *lazy_type::cast<shared_vec_func_void_void>(events[event]).get()) {
+            for (auto h : *lazy_type::cast<ptr_handlers_void>(events[event]).get()) {
                 h();
             }
         }
