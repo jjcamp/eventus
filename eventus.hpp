@@ -69,7 +69,7 @@ namespace eventus {
         void fire(event_type event);
 
     private:
-        // Readbility aliases
+        // Readability aliases
         template<typename T> using handlers = std::vector<handler<T>>;
         template<typename T> using ptr_handlers = std::shared_ptr<handlers<T>>;
         using handlers_void = std::vector<std::function<void()>>;
