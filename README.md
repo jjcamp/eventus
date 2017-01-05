@@ -1,4 +1,4 @@
-eventus
+eventus [![Build Status](https://travis-ci.org/jjcamp/eventus.svg?branch=master)](https://travis-ci.org/jjcamp/eventus)
 =======
 A simple yet powerful event system.
 
