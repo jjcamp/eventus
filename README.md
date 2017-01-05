@@ -12,7 +12,7 @@ Eventus is a header-only library, so the simplest way to include it is to add
 `eventus.hpp` to your project.
 
 Here is a simple example of using the API:
-```
+```c++
 struct point {
     int x;
     int y;
