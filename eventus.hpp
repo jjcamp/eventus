@@ -42,9 +42,18 @@ namespace _eventus_util {
         }
         return ((supertype<T>*)c.ptr.get())->value;
     }
+
+    template<typename T, typename ENABLE = void>
+    struct handler_type { typedef std::function<void(T)> type; };
+
+    template<typename T>
+    struct handler_type<T, typename std::enable_if<std::is_void<T>::value>::type> { typedef std::function<void()> type; };
 }
 
 namespace eventus {
+    // A std::function with a void return type
+    template<typename T> using handler = typename _eventus_util::handler_type<T>::type;
+
     template<typename event_type>
     class event_queue {
     public:
