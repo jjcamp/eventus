@@ -72,8 +72,6 @@ namespace eventus {
         // Readability aliases
         template<typename T> using handlers = std::vector<handler<T>>;
         template<typename T> using ptr_handlers = std::shared_ptr<handlers<T>>;
-        using handlers_void = std::vector<std::function<void()>>;
-        using ptr_handlers_void = std::shared_ptr<handlers_void>;
 
         // Templated structs to allow the use of enums as keys
         template<typename T, typename ENABLE = void>
@@ -111,7 +109,7 @@ namespace eventus {
     template<typename event_type>
     void event_queue<event_type>::fire(event_type event) {
         if (events.count(event) == 1) {
-            for (auto h : *_eventus_util::lazy_type::cast<ptr_handlers_void>(events[event]).get()) {
+            for (auto h : *_eventus_util::lazy_type::cast<ptr_handlers<void>>(events[event]).get()) {
                 h();
             }
         }
