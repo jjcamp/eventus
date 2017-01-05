@@ -9,5 +9,6 @@ compiler:
 
 script:
   - mkdir build && cd build
-  - cmake --build . && ./test
+  - cmake ..
+  - make && ./test
 
