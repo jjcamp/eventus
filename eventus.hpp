@@ -13,6 +13,15 @@
 #include <vector>
 
 namespace _eventus_util {
+    struct lazy_type;
+    template<typename T, typename ENABLE> struct handler_type;
+}
+
+namespace eventus {
+    template<typename event_type> class event_queue;
+}
+
+namespace _eventus_util {
     struct lazy_type {
         struct basetype {
             const std::type_info* typeinfo;
@@ -61,10 +70,13 @@ namespace eventus {
 
         // Adds an event handler which listens for the event and has an input parameter of type T.
         template<typename T> void add_handler(event_type event, handler<T> event_handler);
+   
         // Adds an event handler which listens for the event and has no input parameter.
         void add_handler(event_type event, handler<void> event_handler);
+
         // Fires an event of the specified EventType, passing along the parameter of type T.
         template<typename T> void fire(event_type event, T parameter);
+
         // Fires an event of the specified EventType with no parameter.
         void fire(event_type event);
 
