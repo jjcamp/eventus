@@ -70,7 +70,7 @@ namespace eventus {
 
         // Adds an event handler which listens for the event and has an input parameter of type T.
         template<typename T> void add_handler(event_type event, handler<T> event_handler);
-   
+
         // Adds an event handler which listens for the event and has no input parameter.
         void add_handler(event_type event, handler<void> event_handler);
 
@@ -112,7 +112,7 @@ namespace eventus {
     template<typename T>
     void event_queue<event_type>::fire(event_type event, T parameter) {
         if (events.count(event) == 1) {
-            for (auto h : *_eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event]).get()) {
+            for (auto h : *_eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event])) {
                 h(parameter);
             }
         }
@@ -121,7 +121,7 @@ namespace eventus {
     template<typename event_type>
     void event_queue<event_type>::fire(event_type event) {
         if (events.count(event) == 1) {
-            for (auto h : *_eventus_util::lazy_type::cast<ptr_handlers<void>>(events[event]).get()) {
+            for (auto h : *_eventus_util::lazy_type::cast<ptr_handlers<void>>(events[event])) {
                 h();
             }
         }
