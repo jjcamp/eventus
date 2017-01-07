@@ -101,12 +101,16 @@ namespace eventus {
 
         // Adds an event handler which listens for the event and has an input parameter of type T.
         template<typename T> handler_info<event_type, T> add_handler(event_type event, handler<T> event_handler);
+
         // Adds an event handler which listens for the event and has no input parameter.
         handler_info<event_type, void> add_handler(event_type event, handler<void> event_handler);
-        // Removes and event handler.
+
+        // Removes an event handler.
         template<typename T> void remove_handler(const handler_info<event_type, T>& info);
+
         // Fires an event of the specified EventType, passing along the parameter of type T.
         template<typename T> void fire(event_type event, T parameter);
+
         // Fires an event of the specified EventType with no parameter.
         void fire(event_type event);
 
@@ -120,6 +124,11 @@ namespace eventus {
         struct key_type { typedef T type; };
         template<typename T>
         struct key_type<T, typename std::enable_if<std::is_enum<T>::value>::type> { typedef typename std::underlying_type<T>::type type; };
+
+        template<typename T>
+        void _fire(event_type event, std::function<void(handler<T>*)>);
+        template<typename T>
+        void _remove_unused(event_type event, const size_t max);
 
         std::unordered_map<event_type, _eventus_util::lazy_type, std::hash<typename key_type<event_type>::type>> events;
     };
@@ -159,22 +168,44 @@ namespace eventus {
     template<typename event_type>
     template<typename T>
     void event_queue<event_type>::fire(event_type event, T parameter) {
-        if (events.count(event) == 1) {
-            for (auto& h : *_eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event]).get()) {
-                if (h == nullptr)
-                    continue;
-                (*h)(parameter);
-            }
-        }
+        _fire<T>(event, [&](handler<T>* h) { (*h)(parameter); });
     }
 
     template<typename event_type>
     void event_queue<event_type>::fire(event_type event) {
-        if (events.count(event) == 1) {
-            for (auto& h : *_eventus_util::lazy_type::cast<ptr_handlers<void>>(events[event]).get()) {
-                if (h == nullptr)
-                    continue;
-                (*h)();
+        _fire<void>(event, [](handler<void>* h) { (*h)(); });
+    }
+
+    template<typename event_type>
+    template<typename T>
+    void event_queue<event_type>::_fire(event_type event, std::function<void(handler<T>*)> delegate) {
+        if (events.count(event) != 1)
+            return;
+
+        auto to_remove = 0;
+        for (auto& h : *_eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event])) {
+            if (h == nullptr) {
+                ++to_remove;
+                continue;
+            }
+            delegate(h.get());
+        }
+        _remove_unused<T>(event, to_remove);
+    }
+
+    template<typename event_type>
+    template<typename T>
+    void event_queue<event_type>::_remove_unused(event_type event, const size_t max) {
+        if (max == 0 || events.count(event) != 1)
+            return;
+
+        auto remaining = max;
+        auto handler_vec = _eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event]);
+        for (auto itr = handler_vec->begin(); itr != handler_vec->end() && remaining > 0; ++itr) {
+            if (*itr == nullptr) {
+                handler_vec->erase(itr);
+                --itr;
+                --remaining;
             }
         }
     }
