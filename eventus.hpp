@@ -76,7 +76,7 @@ namespace eventus {
         const event_type _event;
         const handler<T>* _handler;
 
-        const handler<T>* handler() const {
+        const handler<T>* get_handler() const {
             if (_handler == nullptr)
                 throw handler_removed();
             return _handler;
@@ -153,7 +153,7 @@ namespace eventus {
     template<typename event_type>
     template<typename T>
     void event_queue<event_type>::remove_handler(const handler_info<event_type, T>& info) {
-        auto remove_handler = info.handler();
+        auto remove_handler = info.get_handler();
         auto handler_vec = _eventus_util::lazy_type::cast<ptr_handlers<T>>(events[info.event()]);
 
         for (auto& h : *handler_vec) {
