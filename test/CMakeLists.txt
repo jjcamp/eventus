@@ -13,5 +13,6 @@ add_executable(test
     arguments.cpp
     removal.cpp
     lazytype.cpp
+    other.cpp
 )
 
