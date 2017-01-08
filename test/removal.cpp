@@ -52,13 +52,15 @@ TEST_CASE("remove_handler test", "[removal]") {
     }
 
     SECTION("first handler removes itself") {
-        auto should_call = true;
+        // should_call needs to be on the heap or else older versions of libstdc++ will segfault
+        auto should_call = unique_ptr<bool>(new bool);
+        *should_call = true;
         auto eq = event_queue<string>();
         handler_info<string, int>* ptr_handler0;
         auto handler0 = eq.add_handler<int>("event0", [&](int i) {
-            if (should_call) {
+            if (*should_call) {
                 eq.remove_handler(*ptr_handler0);
-                should_call = false;
+                *should_call = false;
                 REQUIRE(i == 3);
                 return;
             }
