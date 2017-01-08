@@ -20,13 +20,15 @@ struct point {
 
 auto eq = eventus::event_queue<std::string>();
 
-eq.add_handler<point>("moved", [](point p) {
+auto my_handler = eq.add_handler<point>("moved", [](point p) {
     std::cout << "x: " << p.x << ", y: " << p.y << std::endl;
 });
 
 point new_location { 3, 6 };
 
 eq.fire("moved", new_location);
+
+eq.remove_handler(my_handler);
 ```
 *Prints:* `x: 3, y: 6`
 
@@ -42,9 +44,6 @@ point-type `new_location` to any listening event handlers.
 
 Other Useful Info
 -----------------
-* Event handlers cannot be removed once added.  There are challenges in
-implementing this well while maintaining the dead-simple interface.
-
 * Nullary events and handlers use the non-templated `add_handler` function
 and the unary `fire` function.
 
