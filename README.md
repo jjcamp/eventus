@@ -34,13 +34,16 @@ eq.remove_handler(my_handler);
 
 `auto eq = eventus::event_queue<std::string>()`: Creates an `event_queue`
 instance which uses strings to name events.  Almost any type can be used here,
-such as c-style strings, `int`s, and unscoped enums.
+such as c-style strings, `int`s, and unscoped enums. `my_handler` is an object
+which can be use to remove the event handler.
 
 `eq.add_handler<point>("moved", /*lambda*/)`: Adds an event listener (the
 lambda or other function) to the "moved" event.
 
 `eq.fire("moved", new_location)`: Fires the "moved" event, passing on the
 point-type `new_location` to any listening event handlers.
+
+`eq.remove_handler(my_handler)`: Removes the handler from the event queue.
 
 Other Useful Info
 -----------------
