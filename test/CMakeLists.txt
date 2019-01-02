@@ -11,6 +11,6 @@ add_executable(test
     keys.cpp
     arguments.cpp
     removal.cpp
-    lazytype.cpp
+    any_t.cpp
     other.cpp
 )

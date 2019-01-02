@@ -5,7 +5,7 @@
 using namespace _eventus_util;
 using namespace std;
 
-TEST_CASE("lazy_type", "[lazy_type]") {
+TEST_CASE("any_t", "[any_t]") {
     SECTION("works with a struct") {
         struct a {
             int b;
@@ -14,8 +14,8 @@ TEST_CASE("lazy_type", "[lazy_type]") {
 
         a original { 3, "test" };
 
-        auto lazy = lazy_type::create(original);
-        auto result = lazy_type::cast<a>(lazy);
+        auto lazy = any_t::create(original);
+        auto result = any_t::cast<a>(lazy);
 
         REQUIRE(result.b == original.b);
         REQUIRE(result.c == original.c);
@@ -23,8 +23,8 @@ TEST_CASE("lazy_type", "[lazy_type]") {
 
     SECTION("throws bad_cast") {
         string s = "test";
-        auto lazy = lazy_type::create(s);
-        REQUIRE_THROWS_AS(lazy_type::cast<int>(lazy), bad_cast);
+        auto lazy = any_t::create(s);
+        REQUIRE_THROWS_AS(any_t::cast<int>(lazy), bad_cast);
     }
 }
 
