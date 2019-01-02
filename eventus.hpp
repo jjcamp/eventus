@@ -14,7 +14,7 @@
 
 namespace _eventus_util {
     struct any_t;
-    template<typename T, typename ENABLE> struct handler_type;
+    template<typename T, typename ENABLE> struct handler_t;
 }
 
 namespace eventus {
@@ -57,15 +57,15 @@ namespace _eventus_util {
     }
 
     template<typename T, typename ENABLE = void>
-    struct handler_type { typedef std::function<void(T)> type; };
+    struct handler_t { typedef std::function<void(T)> type; };
 
     template<typename T>
-    struct handler_type<T, typename std::enable_if<std::is_void<T>::value>::type> { typedef std::function<void()> type; };
+    struct handler_t<T, typename std::enable_if<std::is_void<T>::value>::type> { typedef std::function<void()> type; };
 }
 
 namespace eventus {
     // A std::function with a void return type
-    template<typename T> using handler = typename _eventus_util::handler_type<T>::type;
+    template<typename T> using handler = typename _eventus_util::handler_t<T>::type;
 
     template<typename event_type, typename T>
     class handler_info {
