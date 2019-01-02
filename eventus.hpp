@@ -53,7 +53,7 @@ namespace _eventus_util {
         if (typeid(T) != *c.ptr->typeinfo) {
             throw std::bad_cast();
         }
-        return ((supertype<T>*)c.ptr.get())->value;
+        return static_cast<supertype<T>*>(c.ptr.get())->value;
     }
 
     template<typename T, typename ENABLE = void>
