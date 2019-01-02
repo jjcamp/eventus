@@ -13,8 +13,8 @@
 #include <vector>
 
 namespace _eventus_util {
-    struct lazy_type;
-    template<typename T, typename ENABLE> struct handler_type;
+    struct any_t;
+    template<typename T, typename ENABLE> struct handler_t;
 }
 
 namespace eventus {
@@ -26,21 +26,21 @@ namespace eventus {
 }
 
 namespace _eventus_util {
-    struct lazy_type {
+    struct any_t {
         struct basetype {
             const std::type_info* typeinfo;
         };
         template<typename T> struct supertype : public basetype {
             T value;
         };
-        template<typename T> static lazy_type create(T value);
-        template<typename T> static T cast(lazy_type &c);
+        template<typename T> static any_t create(T value);
+        template<typename T> static T cast(any_t &c);
         std::unique_ptr<basetype> ptr;
     };
 
     template<typename T>
-    lazy_type lazy_type::create(T value) {
-        auto lt = lazy_type();
+    any_t any_t::create(T value) {
+        auto lt = any_t();
         auto tinfo = supertype<T>();
         tinfo.value = value;
         tinfo.typeinfo = &typeid(value);
@@ -49,7 +49,7 @@ namespace _eventus_util {
     }
 
     template<typename T>
-    T lazy_type::cast(lazy_type &c) {
+    T any_t::cast(any_t &c) {
         if (typeid(T) != *c.ptr->typeinfo) {
             throw std::bad_cast();
         }
@@ -57,15 +57,15 @@ namespace _eventus_util {
     }
 
     template<typename T, typename ENABLE = void>
-    struct handler_type { typedef std::function<void(T)> type; };
+    struct handler_t { typedef std::function<void(T)> type; };
 
     template<typename T>
-    struct handler_type<T, typename std::enable_if<std::is_void<T>::value>::type> { typedef std::function<void()> type; };
+    struct handler_t<T, typename std::enable_if<std::is_void<T>::value>::type> { typedef std::function<void()> type; };
 }
 
 namespace eventus {
     // A std::function with a void return type
-    template<typename T> using handler = typename _eventus_util::handler_type<T>::type;
+    template<typename T> using handler = typename _eventus_util::handler_t<T>::type;
 
     template<typename event_type, typename T>
     class handler_info {
@@ -121,27 +121,27 @@ namespace eventus {
 
         // Templated structs to allow the use of enums as keys
         template<typename T, typename ENABLE = void>
-        struct key_type { typedef T type; };
+        struct key_t { typedef T type; };
         template<typename T>
-        struct key_type<T, typename std::enable_if<std::is_enum<T>::value>::type> { typedef typename std::underlying_type<T>::type type; };
+        struct key_t<T, typename std::enable_if<std::is_enum<T>::value>::type> { typedef typename std::underlying_type<T>::type type; };
 
         template<typename T>
         void _fire(event_type event, std::function<void(handler<T>*)>);
         template<typename T>
         void _remove_unused(event_type event, const size_t max);
 
-        std::unordered_map<event_type, _eventus_util::lazy_type, std::hash<typename key_type<event_type>::type>> events;
+        std::unordered_map<event_type, _eventus_util::any_t, std::hash<typename key_t<event_type>::type>> events;
     };
 
     template<typename event_type>
     template<typename T>
     handler_info<event_type, T> event_queue<event_type>::add_handler(event_type event, handler<T> event_handler) {
         if (events.count(event) == 0) {
-            events[event] = _eventus_util::lazy_type::create(ptr_handlers<T>(new handlers<T>(0)));
+            events[event] = _eventus_util::any_t::create(ptr_handlers<T>(new handlers<T>(0)));
         }
         auto ptr_handler = std::unique_ptr<handler<T>>(new handler<T>(event_handler));
         auto info = handler_info<event_type, T>(event, ptr_handler.get());
-        _eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event])->emplace_back(std::move(ptr_handler));
+        _eventus_util::any_t::cast<ptr_handlers<T>>(events[event])->emplace_back(std::move(ptr_handler));
         return info;
     }
 
@@ -154,7 +154,7 @@ namespace eventus {
     template<typename T>
     void event_queue<event_type>::remove_handler(const handler_info<event_type, T>& info) {
         auto remove_handler = info.get_handler();
-        auto handler_vec = _eventus_util::lazy_type::cast<ptr_handlers<T>>(events[info.event()]);
+        auto handler_vec = _eventus_util::any_t::cast<ptr_handlers<T>>(events[info.event()]);
 
         for (auto& h : *handler_vec) {
             if (h.get() != remove_handler)
@@ -183,7 +183,7 @@ namespace eventus {
             return;
 
         auto to_remove = 0;
-        for (auto& h : *_eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event])) {
+        for (auto& h : *_eventus_util::any_t::cast<ptr_handlers<T>>(events[event])) {
             if (h == nullptr) {
                 ++to_remove;
                 continue;
@@ -200,7 +200,7 @@ namespace eventus {
             return;
 
         auto remaining = max;
-        auto handler_vec = _eventus_util::lazy_type::cast<ptr_handlers<T>>(events[event]);
+        auto handler_vec = _eventus_util::any_t::cast<ptr_handlers<T>>(events[event]);
         for (auto itr = handler_vec->begin(); itr != handler_vec->end() && remaining > 0; ++itr) {
             if (*itr == nullptr) {
                 handler_vec->erase(itr);
