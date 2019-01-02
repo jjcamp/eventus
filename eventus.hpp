@@ -121,16 +121,16 @@ namespace eventus {
 
         // Templated structs to allow the use of enums as keys
         template<typename T, typename ENABLE = void>
-        struct key_type { typedef T type; };
+        struct key_t { typedef T type; };
         template<typename T>
-        struct key_type<T, typename std::enable_if<std::is_enum<T>::value>::type> { typedef typename std::underlying_type<T>::type type; };
+        struct key_t<T, typename std::enable_if<std::is_enum<T>::value>::type> { typedef typename std::underlying_type<T>::type type; };
 
         template<typename T>
         void _fire(event_type event, std::function<void(handler<T>*)>);
         template<typename T>
         void _remove_unused(event_type event, const size_t max);
 
-        std::unordered_map<event_type, _eventus_util::any_t, std::hash<typename key_type<event_type>::type>> events;
+        std::unordered_map<event_type, _eventus_util::any_t, std::hash<typename key_t<event_type>::type>> events;
     };
 
     template<typename event_type>
