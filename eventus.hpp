@@ -29,9 +29,11 @@ namespace _eventus_util {
     struct any_t {
         struct basetype {
             const std::type_info* typeinfo;
+            basetype(const std::type_info* ti) : typeinfo{ti} {}
         };
         template<typename T> struct supertype : public basetype {
             T value;
+            supertype(T val) : value{val}, basetype(&typeid(val)) {}
         };
         template<typename T> static any_t create(T value);
         template<typename T> static T cast(any_t &c);
@@ -41,9 +43,7 @@ namespace _eventus_util {
     template<typename T>
     any_t any_t::create(T value) {
         auto lt = any_t();
-        auto tinfo = supertype<T>();
-        tinfo.value = value;
-        tinfo.typeinfo = &typeid(value);
+        auto tinfo = supertype<T>(value);
         lt.ptr = std::unique_ptr<supertype<T>>(new supertype<T>(tinfo));
         return lt;
     }
