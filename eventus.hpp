@@ -117,7 +117,7 @@ namespace eventus {
     private:
         // Readability aliases
         template<typename T> using handlers = std::vector<std::unique_ptr<handler<T>>>;
-        template<typename T> using ptr_handlers = std::shared_ptr<handlers<T>>;
+        //template<typename T> using ptr_handlers = std::shared_ptr<handlers<T>>;
 
         // Templated structs to allow the use of enums as keys
         template<typename T, typename ENABLE = void>
@@ -137,11 +137,11 @@ namespace eventus {
     template<typename T>
     handler_info<event_type, T> event_queue<event_type>::add_handler(event_type event, handler<T> event_handler) {
         if (events.count(event) == 0) {
-            events[event] = _eventus_util::any_t::create(ptr_handlers<T>(new handlers<T>(0)));
+            events[event] = _eventus_util::any_t::create(new handlers<T>(0));
         }
         auto ptr_handler = std::unique_ptr<handler<T>>(new handler<T>(event_handler));
         auto info = handler_info<event_type, T>(event, ptr_handler.get());
-        _eventus_util::any_t::cast<ptr_handlers<T>>(events[event])->emplace_back(std::move(ptr_handler));
+        _eventus_util::any_t::cast<handlers<T>*>(events[event])->emplace_back(std::move(ptr_handler));
         return info;
     }
 
@@ -154,7 +154,7 @@ namespace eventus {
     template<typename T>
     void event_queue<event_type>::remove_handler(const handler_info<event_type, T>& info) {
         auto remove_handler = info.get_handler();
-        auto handler_vec = _eventus_util::any_t::cast<ptr_handlers<T>>(events[info.event()]);
+        auto handler_vec = _eventus_util::any_t::cast<handlers<T>*>(events[info.event()]);
 
         for (auto& h : *handler_vec) {
             if (h.get() != remove_handler)
@@ -183,7 +183,7 @@ namespace eventus {
             return;
 
         auto to_remove = 0;
-        for (auto& h : *_eventus_util::any_t::cast<ptr_handlers<T>>(events[event])) {
+        for (auto& h : *_eventus_util::any_t::cast<handlers<T>*>(events[event])) {
             if (h == nullptr) {
                 ++to_remove;
                 continue;
@@ -200,7 +200,7 @@ namespace eventus {
             return;
 
         auto remaining = max;
-        auto handler_vec = _eventus_util::any_t::cast<ptr_handlers<T>>(events[event]);
+        auto handler_vec = _eventus_util::any_t::cast<handlers<T>*>(events[event]);
         for (auto itr = handler_vec->begin(); itr != handler_vec->end() && remaining > 0; ++itr) {
             if (*itr == nullptr) {
                 handler_vec->erase(itr);
