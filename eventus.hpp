@@ -34,27 +34,28 @@ namespace _eventus_util {
         };
         template<typename T> struct supertype : public basetype {
             T value;
-            supertype(T val) : value{val}, basetype(&typeid(val)) {}
+            supertype(T&& val) : value{std::forward<T>(val)}, basetype(&typeid(value)) {}
         };
-        template<typename T> static any_t create(T value);
-        template<typename T> static T cast(any_t &c);
+        template<typename T> static any_t create(T&& value);
+        template<typename T> static T&& cast(any_t &c);
         std::unique_ptr<basetype> ptr;
+        any_t() = default;
+
+    private:
+        any_t(std::unique_ptr<basetype>&& p) : ptr{std::move(p)} {}
     };
 
     template<typename T>
-    any_t any_t::create(T value) {
-        auto lt = any_t();
-        auto tinfo = supertype<T>(value);
-        lt.ptr = std::unique_ptr<supertype<T>>(new supertype<T>(tinfo));
-        return lt;
+    any_t any_t::create(T&& value) {
+        return any_t(std::unique_ptr<basetype>(new supertype<T>(std::forward<T>(value))));
     }
 
     template<typename T>
-    T any_t::cast(any_t &c) {
+    T&& any_t::cast(any_t &c) {
         if (typeid(T) != *c.ptr->typeinfo) {
             throw std::bad_cast();
         }
-        return static_cast<supertype<T>*>(c.ptr.get())->value;
+        return std::forward<T>(static_cast<supertype<T>*>(c.ptr.get())->value);
     }
 
     template<typename T, typename ENABLE = void>
