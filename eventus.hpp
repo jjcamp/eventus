@@ -129,7 +129,7 @@ namespace eventus {
         template<typename T>
         void _fire(event_type event, std::function<void(handler<T>*)>);
         template<typename T>
-        void _remove_unused(event_type event, const size_t max);
+        void _remove_unused(handlers<T>* handler_vec);
 
         std::unordered_map<event_type, _eventus_util::any_t, std::hash<typename key_t<event_type>::type>> events;
     };
@@ -184,23 +184,22 @@ namespace eventus {
             return;
 
         auto to_remove = 0;
-        for (auto& h : *_eventus_util::any_t::cast<handlers<T>*>(events[event])) {
+        auto handler_vec = _eventus_util::any_t::cast<handlers<T>*>(events[event]);
+        for (auto& h : *handler_vec) {
             if (h == nullptr) {
                 ++to_remove;
                 continue;
             }
             delegate(h.get());
         }
-        _remove_unused<T>(event, to_remove);
+
+        if (to_remove != 0)
+            _remove_unused<T>(handler_vec);
     }
 
     template<typename event_type>
     template<typename T>
-    void event_queue<event_type>::_remove_unused(event_type event, const size_t max) {
-        if (max == 0 || events.count(event) != 1)
-            return;
-
-        auto handler_vec = _eventus_util::any_t::cast<handlers<T>*>(events[event]);
+    void event_queue<event_type>::_remove_unused(handlers<T>* handler_vec) {
         std::remove(handler_vec->begin(), handler_vec->end(), nullptr);
     }
 }
