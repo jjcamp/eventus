@@ -4,6 +4,7 @@
 */
 #pragma once
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <string>
@@ -199,15 +200,8 @@ namespace eventus {
         if (max == 0 || events.count(event) != 1)
             return;
 
-        auto remaining = max;
         auto handler_vec = _eventus_util::any_t::cast<handlers<T>*>(events[event]);
-        for (auto itr = handler_vec->begin(); itr != handler_vec->end() && remaining > 0; ++itr) {
-            if (*itr == nullptr) {
-                handler_vec->erase(itr);
-                --itr;
-                --remaining;
-            }
-        }
+        std::remove(handler_vec->begin(), handler_vec->end(), nullptr);
     }
 }
 
