@@ -119,7 +119,6 @@ namespace eventus {
     private:
         // Readability aliases
         template<typename T> using handlers = std::vector<std::unique_ptr<handler<T>>>;
-        //template<typename T> using ptr_handlers = std::shared_ptr<handlers<T>>;
 
         // Templated structs to allow the use of enums as keys
         template<typename T, typename ENABLE = void>
