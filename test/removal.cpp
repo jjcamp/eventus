@@ -58,8 +58,8 @@ TEST_CASE("remove_handler test", "[removal]") {
         // gcc + libstdc++ 4.8 are requiring explicit captures here
         auto handler0 = eq.add_handler<int>("event0", [&eq, &ptr_handler0, &should_call](int i) {
             if (should_call) {
-                eq.remove_handler(*ptr_handler0);
                 should_call = false;
+                eq.remove_handler(*ptr_handler0);
                 REQUIRE(i == 3);
                 return;
             }

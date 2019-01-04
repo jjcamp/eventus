@@ -1,4 +1,5 @@
 #include <string>
+#include <string.h>
 #include "catch.hpp"
 #include "../eventus.hpp"
 
@@ -25,7 +26,8 @@ TEST_CASE("works with different argument types", "[arguments]") {
     SECTION("works with a cstring") {
         auto eq = event_queue<string>();
         eq.add_handler<const char*>("test0", [](const char* s) {
-            REQUIRE(s == "test");
+            // TODO: Upgrade to Catch2, use REQURE_THAT
+            REQUIRE(strcmp(s, "test") == 0);
         });
         eq.fire("test0", "test");
     }
