@@ -93,7 +93,7 @@ namespace eventus {
 
         const event_type& event() const { return _event; }
 
-        const bool removed() const { return _handler != nullptr; }
+        bool removed() const { return _handler != nullptr; }
     };
 
     template<typename event_type>
