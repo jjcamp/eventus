@@ -102,19 +102,19 @@ namespace eventus {
         event_queue() = default;
 
         // Adds an event handler which listens for the event and has an input parameter of type T.
-        template<typename T> handler_info<event_type, T> add_handler(event_type event, handler<T> event_handler);
+        template<typename T> handler_info<event_type, T> add_handler(event_type&& event, handler<T> event_handler);
 
         // Adds an event handler which listens for the event and has no input parameter.
-        handler_info<event_type, void> add_handler(event_type event, handler<void> event_handler);
+        handler_info<event_type, void> add_handler(event_type&& event, handler<void> event_handler);
 
         // Removes an event handler.
         template<typename T> void remove_handler(const handler_info<event_type, T>& info);
 
         // Fires an event of the specified EventType, passing along the parameter of type T.
-        template<typename T> void fire(event_type event, T parameter);
+        template<typename T> void fire(event_type&& event, T parameter);
 
         // Fires an event of the specified EventType with no parameter.
-        void fire(event_type event);
+        void fire(event_type&& event);
 
     private:
         // Readability aliases
@@ -127,7 +127,7 @@ namespace eventus {
         struct key_t<T, typename std::enable_if<std::is_enum<T>::value>::type> { typedef typename std::underlying_type<T>::type type; };
 
         template<typename T>
-        void _fire(event_type event, std::function<void(handler<T>*)>);
+        void _fire(event_type&& event, std::function<void(handler<T>*)>);
         template<typename T>
         void _remove_unused(handlers<T>* handler_vec);
 
@@ -136,7 +136,7 @@ namespace eventus {
 
     template<typename event_type>
     template<typename T>
-    handler_info<event_type, T> event_queue<event_type>::add_handler(event_type event, handler<T> event_handler) {
+    handler_info<event_type, T> event_queue<event_type>::add_handler(event_type&& event, handler<T> event_handler) {
         if (events.count(event) == 0) {
             events[event] = _eventus_util::any_t::create(new handlers<T>(0));
         }
@@ -147,8 +147,8 @@ namespace eventus {
     }
 
     template<typename event_type>
-    handler_info<event_type, void> event_queue<event_type>::add_handler(event_type event, handler<void> event_handler) {
-        return add_handler<void>(event, event_handler);
+    handler_info<event_type, void> event_queue<event_type>::add_handler(event_type&& event, handler<void> event_handler) {
+        return add_handler<void>(std::forward<event_type>(event), event_handler);
     }
 
     template<typename event_type>
@@ -168,18 +168,18 @@ namespace eventus {
 
     template<typename event_type>
     template<typename T>
-    void event_queue<event_type>::fire(event_type event, T parameter) {
-        _fire<T>(event, [&](handler<T>* h) { (*h)(parameter); });
+    void event_queue<event_type>::fire(event_type&& event, T parameter) {
+        _fire<T>(std::forward<event_type>(event), [&](handler<T>* h) { (*h)(parameter); });
     }
 
     template<typename event_type>
-    void event_queue<event_type>::fire(event_type event) {
-        _fire<void>(event, [](handler<void>* h) { (*h)(); });
+    void event_queue<event_type>::fire(event_type&& event) {
+        _fire<void>(std::forward<event_type>(event), [](handler<void>* h) { (*h)(); });
     }
 
     template<typename event_type>
     template<typename T>
-    void event_queue<event_type>::_fire(event_type event, std::function<void(handler<T>*)> delegate) {
+    void event_queue<event_type>::_fire(event_type&& event, std::function<void(handler<T>*)> delegate) {
         if (events.count(event) != 1)
             return;
 

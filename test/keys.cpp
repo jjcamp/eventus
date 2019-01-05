@@ -22,6 +22,8 @@ TEST_CASE("works with different key types", "[keys]") {
         eq.fire(1, 3);
     }
 
+#ifndef _MSC_VER
+    // A bug with MSVC prevents this from compiling, and will remain a caveat for MSVC until fixed
     SECTION("cstring") {
         auto eq = event_queue<const char*>();
         eq.add_handler<int>("test0", [](int i) {
@@ -29,6 +31,7 @@ TEST_CASE("works with different key types", "[keys]") {
         });
         eq.fire("test0", 3);
     }
+#endif
 
     SECTION("classic enum") {
         enum a { B, C };

@@ -53,7 +53,10 @@ and the unary `fire` function.
 * Eventus uses runtime type information (RTTI).  Mismatched types between
 firing an event and handling an event throw `std::bad_cast`.
 
-Known Bugs
+Known Issues 
 ----------
+* MSVC: Cannot use `const char*` event type with string literals. Use
+`std::string` or another type instead.
+
 * scoped enums (enum class) cannot be used as an event type
 
