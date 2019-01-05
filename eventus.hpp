@@ -127,7 +127,11 @@ namespace eventus {
         struct key_t<T, typename std::enable_if<std::is_enum<T>::value>::type> { typedef typename std::underlying_type<T>::type type; };
 
         template<typename T>
-        void _fire(event_type&& event, std::function<void(handler<T>*)>);
+        void _fire(event_type&& event, T* param);
+        template<typename T>
+        typename std::enable_if<!std::is_void<T>::value, void>::type _fire_handler(handler<T>* h, T* param);
+        template<typename T>
+        typename std::enable_if<std::is_void<T>::value, void>::type _fire_handler(handler<T>* h, T* param);
         template<typename T>
         void _remove_unused(handlers<T>* handler_vec);
 
@@ -169,17 +173,17 @@ namespace eventus {
     template<typename event_type>
     template<typename T>
     void event_queue<event_type>::fire(event_type&& event, T parameter) {
-        _fire<T>(std::forward<event_type>(event), [&](handler<T>* h) { (*h)(parameter); });
+        _fire<T>(std::forward<event_type>(event), &parameter);
     }
 
     template<typename event_type>
     void event_queue<event_type>::fire(event_type&& event) {
-        _fire<void>(std::forward<event_type>(event), [](handler<void>* h) { (*h)(); });
+        _fire<void>(std::forward<event_type>(event), nullptr);
     }
 
     template<typename event_type>
     template<typename T>
-    void event_queue<event_type>::_fire(event_type&& event, std::function<void(handler<T>*)> delegate) {
+    void event_queue<event_type>::_fire(event_type&& event, T* param) {
         if (events.count(event) != 1)
             return;
 
@@ -190,11 +194,23 @@ namespace eventus {
                 ++to_remove;
                 continue;
             }
-            delegate(h.get());
+            _fire_handler<T>(h.get(), param);
         }
 
         if (to_remove != 0)
             _remove_unused<T>(handler_vec);
+    }
+
+    template<typename event_type>
+    template<typename T>
+    typename std::enable_if<!std::is_void<T>::value, void>::type event_queue<event_type>::_fire_handler(handler<T>* h, T* param) {
+        (*h)(*param);
+    }
+
+    template<typename event_type>
+    template<typename T>
+    typename std::enable_if<std::is_void<T>::value, void>::type event_queue<event_type>::_fire_handler(handler<T>* h, T* param) {
+        (*h)();
     }
 
     template<typename event_type>
