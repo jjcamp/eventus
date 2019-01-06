@@ -187,16 +187,16 @@ namespace eventus {
         if (events.count(event) != 1)
             return;
 
-        auto to_remove = 0;
+        auto has_removal = false;
         auto handler_vec = _eventus_util::any_t::cast<handlers<T>*>(events[event]);
         for (auto& h : *handler_vec) {
             if (h == nullptr)
-                ++to_remove;
+                has_removal = true;
             else
                 (*d)(h.get(), param);
         }
 
-        if (to_remove != 0)
+        if (has_removal)
             _remove_unused<T>(handler_vec);
     }
 
