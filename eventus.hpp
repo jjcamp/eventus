@@ -190,11 +190,10 @@ namespace eventus {
         auto to_remove = 0;
         auto handler_vec = _eventus_util::any_t::cast<handlers<T>*>(events[event]);
         for (auto& h : *handler_vec) {
-            if (h == nullptr) {
+            if (h == nullptr)
                 ++to_remove;
-                continue;
-            }
-            (*d)(h.get(), param);
+            else
+                (*d)(h.get(), param);
         }
 
         if (to_remove != 0)
