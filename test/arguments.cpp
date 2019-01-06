@@ -26,7 +26,7 @@ TEST_CASE("works with different argument types", "[arguments]") {
     SECTION("works with a cstring") {
         auto eq = event_queue<string>();
         eq.add_handler<const char*>("test0", [](const char* s) {
-            // TODO: Upgrade to Catch2, use REQUIRE_THAT
+            // TODO: Upgrade to Catch2, use REQURE_THAT
             REQUIRE(strcmp(s, "test") == 0);
         });
         eq.fire("test0", "test");
@@ -45,7 +45,7 @@ TEST_CASE("works with different argument types", "[arguments]") {
             REQUIRE(thing.b == original.b);
             REQUIRE(thing.c == original.c);
         });
-        eq.fire("test0", a(original));
+        eq.fire("test0", original);
     }
 
     SECTION("works with a void") {
