@@ -111,7 +111,8 @@ namespace eventus {
         template<typename T> void remove_handler(const handler_info<event_type, T>& info);
 
         // Fires an event of the specified EventType, passing along the parameter of type T.
-        template<typename T> void fire(event_type&& event, T parameter);
+        template<typename T> void fire(event_type&& event, T&& parameter);
+        template<typename T> void fire(event_type&& event, const T parameter[]);
 
         // Fires an event of the specified EventType with no parameter.
         void fire(event_type&& event);
@@ -172,8 +173,14 @@ namespace eventus {
 
     template<typename event_type>
     template<typename T>
-    void event_queue<event_type>::fire(event_type&& event, T parameter) {
+    void event_queue<event_type>::fire(event_type&& event, T&& parameter) {
         _fire<T>(std::forward<event_type>(event), &parameter);
+    }
+
+    template<typename event_type>
+    template<typename T>
+    void event_queue<event_type>::fire(event_type&& event, const T parameter[]) {
+        _fire<typename std::add_pointer<typename std::add_const<typename std::decay<T>::type>::type>::type>(std::forward<event_type>(event), &parameter);
     }
 
     template<typename event_type>
