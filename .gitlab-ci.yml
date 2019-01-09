@@ -1,0 +1,37 @@
+stages:
+  - build
+  - test
+
+.build-base: &build-base
+  script:
+    - mkdir build && cd build
+    - cmake ../test
+    - make
+  artifacts:
+    paths:
+      - build/test
+    expire_in: 10 min
+
+build:gcc:
+  stage: build
+  image: rikorose/gcc-cmake:latest
+  <<: *build-base
+
+build:clang:
+  stage: build
+  image: jjcamp/clang-cmake:latest
+  <<: *build-base
+
+test:gcc:
+  stage: test
+  image: debian:stretch # ultimate source of gcc image
+  script: build/test
+  dependencies:
+    - build:gcc
+
+test:clang:
+  stage: test
+  image: debian:stretch # ultimate source of clang image
+  script: build/test
+  dependencies:
+    - build:clang
