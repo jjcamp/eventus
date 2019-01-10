@@ -1,5 +1,4 @@
 #include <string>
-#include <string.h>
 #include "catch.hpp"
 #include "../eventus.hpp"
 
@@ -26,8 +25,7 @@ TEST_CASE("works with different argument types", "[arguments]") {
     SECTION("works with a cstring") {
         auto eq = event_queue<string>();
         eq.add_handler<const char*>("test0", [](const char* s) {
-            // TODO: Upgrade to Catch2, use REQURE_THAT
-            REQUIRE(strcmp(s, "test") == 0);
+            REQUIRE_THAT(s, Catch::Equals("test"));
         });
         eq.fire("test0", "test");
     }
@@ -51,7 +49,7 @@ TEST_CASE("works with different argument types", "[arguments]") {
     SECTION("works with a void") {
         auto eq = event_queue<string>();
         eq.add_handler("test0", []() {
-            return;
+            REQUIRE(true);
         });
         eq.fire("test0");
     }
