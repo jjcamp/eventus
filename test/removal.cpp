@@ -8,15 +8,15 @@ using namespace std;
 TEST_CASE("remove_handler test", "[removal]") {
     SECTION("removes a handler") {
         auto eq = event_queue<string>();
-        auto handler0 = eq.add_handler<int>("event0", [](int i) {
-            return;
+        auto handler0 = eq.add_handler<int>("event0", [](int) {
+            REQUIRE(false);
         });
         eq.remove_handler(handler0);
     }
 
     SECTION("doesn't call handler") {
         auto eq = event_queue<string>();
-        auto handler0 = eq.add_handler<int>("event0", [](int i) {
+        auto handler0 = eq.add_handler<int>("event0", [](int) {
             REQUIRE(false);
         });
         eq.remove_handler(handler0);
@@ -25,7 +25,7 @@ TEST_CASE("remove_handler test", "[removal]") {
 
     SECTION("calls the second handler only") {
         auto eq = event_queue<string>();
-        auto handler0 = eq.add_handler<int>("event0", [](int i) {
+        auto handler0 = eq.add_handler<int>("event0", [](int) {
             REQUIRE(false);
         });
         auto handler1 = eq.add_handler<int>("event0", [](int i) {
@@ -44,7 +44,7 @@ TEST_CASE("remove_handler test", "[removal]") {
             eq.remove_handler(*ptr_handler1);
             REQUIRE(i == 3);
         });
-        auto handler1 = eq.add_handler<int>("event0", [](int i) {
+        auto handler1 = eq.add_handler<int>("event0", [](int) {
             REQUIRE(false);
         });
         ptr_handler1 = &handler1;
