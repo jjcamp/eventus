@@ -14,5 +14,6 @@ add_executable(test
     arguments.cpp
     removal.cpp
     any_t.cpp
+    handlers.cpp
     other.cpp
 )
