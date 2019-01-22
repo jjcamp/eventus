@@ -37,11 +37,9 @@ namespace _eventus_util {
             supertype(T&& val) : value{std::forward<T>(val)}, basetype(&typeid(value)) {}
         };
         template<typename T> static any_t create(T&& value);
-        template<typename T> static T&& cast(any_t &c);
+        template<typename T> static T& cast(any_t& c);
         std::unique_ptr<basetype> ptr;
         any_t() = default;
-
-    private:
         any_t(std::unique_ptr<basetype>&& p) : ptr{std::move(p)} {}
     };
 
@@ -51,11 +49,10 @@ namespace _eventus_util {
     }
 
     template<typename T>
-    T&& any_t::cast(any_t &c) {
-        if (&typeid(T) != c.ptr->typeinfo) {
+    T& any_t::cast(any_t& c) {
+        if (&typeid(T) != c.ptr->typeinfo)
             throw std::bad_cast();
-        }
-        return std::forward<T>(static_cast<supertype<T>*>(c.ptr.get())->value);
+        return static_cast<supertype<T>*>(c.ptr.get())->value;
     }
 
     template<typename T, typename ENABLE = void> struct handler_ts { typedef std::function<void(T)> type; };
@@ -79,27 +76,25 @@ namespace _eventus_util {
         const int NUM_PARAMS;
         template<typename T> static handlers create();
         template<typename T> static handlers create(std::unique_ptr<handler_t<T>>&& h);
-        template<typename T> std::vector<std::unique_ptr<handler_t<T>>>* get();
+        template<typename T> std::vector<std::unique_ptr<handler_t<T>>>& get();
     };
 
-    // TODO: get rid of outer pointer, pass out references instead
-    // TODO: irrelevant if above is done, but if not then address memory leak on vector
     template<typename T>
     handlers handlers::create() {
-        return handlers(any_t::create(new std::vector<std::unique_ptr<handler_t<T>>>(0)), get_num_params<T>());
+        return handlers(any_t::create(std::vector<std::unique_ptr<handler_t<T>>>(0)), get_num_params<T>());
     }
 
     template<typename T>
     handlers handlers::create(std::unique_ptr<handler_t<T>>&& h) {
-        auto result = handlers(any_t::create(new std::vector<std::unique_ptr<handler_t<T>>>(1)), get_num_params<T>());
-        result.get<T>()->emplace_back(std::move(h));
+        auto result = handlers(any_t::create(std::vector<std::unique_ptr<handler_t<T>>>(1)), get_num_params<T>());
+        result.get<T>().emplace_back(std::move(h));
         return result;
     }
 
     template<typename T>
-    std::vector<std::unique_ptr<handler_t<T>>>* handlers::get() {
+    std::vector<std::unique_ptr<handler_t<T>>>& handlers::get() {
         try {
-            return any_t::cast<std::vector<std::unique_ptr<handler_t<T>>>*>(*this);
+            return any_t::cast<std::vector<std::unique_ptr<handler_t<T>>>>(*this);
         }
         catch (std::bad_cast ex) {
             if (get_num_params<T>() == NUM_PARAMS)
@@ -173,7 +168,7 @@ namespace eventus {
         template<typename T>
         void _fire(event_type&& event, void(*d)(const handler<T>*,T*), T* param);
         template<typename T>
-        void _remove_unused(std::vector<std::unique_ptr<handler<T>>>* handler_vec);
+        void _remove_unused(std::vector<std::unique_ptr<handler<T>>>& handler_vec);
 
         std::unordered_map<event_type, handlers, std::hash<typename key_t<event_type>::type>> events;
     };
@@ -186,7 +181,7 @@ namespace eventus {
 
         auto ptr_handler = std::unique_ptr<handler<T>>(new handler<T>(event_handler));
         auto info = handler_info<event_type, T>(event, ptr_handler.get());
-        events.at(event).template get<T>()->emplace_back(std::move(ptr_handler));
+        events.at(event).template get<T>().emplace_back(std::move(ptr_handler));
         return info;
     }
 
@@ -199,9 +194,9 @@ namespace eventus {
     template<typename T>
     void event_queue<event_type>::remove_handler(handler_info<event_type, T>& info) {
         auto remove_handler = info.get_handler();
-        auto handler_vec = events.at(info.event()).template get<T>();
+        auto& handler_vec = events.at(info.event()).template get<T>();
 
-        for (auto& h : *handler_vec) {
+        for (auto& h : handler_vec) {
             if (h.get() != remove_handler)
                 continue;
 
@@ -233,8 +228,8 @@ namespace eventus {
             return;
 
         auto has_removal = false;
-        auto handler_vec = events.at(event).template get<T>();
-        for (const auto& h : *handler_vec) {
+        auto& handler_vec = events.at(event).template get<T>();
+        for (const auto& h : handler_vec) {
             if (h == nullptr)
                 has_removal = true;
             else
@@ -247,8 +242,8 @@ namespace eventus {
 
     template<typename event_type>
     template<typename T>
-    void event_queue<event_type>::_remove_unused(std::vector<std::unique_ptr<handler<T>>>* handler_vec) {
-        std::remove(handler_vec->begin(), handler_vec->end(), nullptr);
+    void event_queue<event_type>::_remove_unused(std::vector<std::unique_ptr<handler<T>>>& handler_vec) {
+        std::remove(handler_vec.begin(), handler_vec.end(), nullptr);
     }
 }
 

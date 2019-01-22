@@ -16,7 +16,7 @@ TEST_CASE("any_t", "[any_t]") {
         a original { 3, "test" };
 
         auto lazy = any_t::create(a(original));
-        auto result = any_t::cast<a>(lazy);
+        auto& result = any_t::cast<a>(lazy);
 
         REQUIRE(result.b == original.b);
         REQUIRE(result.c == original.c);
@@ -31,7 +31,7 @@ TEST_CASE("any_t", "[any_t]") {
     SECTION("works with move") {
         auto sp = unique_ptr<string>(new string("test"));
         auto lazy = any_t::create(move(sp));
-        auto result = any_t::cast<unique_ptr<string>>(lazy);
+        auto& result = any_t::cast<unique_ptr<string>>(lazy);
 
         REQUIRE(*result == "test");
     }
