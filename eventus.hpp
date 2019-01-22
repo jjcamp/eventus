@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
-#include <string>
+#include <stdexcept>
 #include <typeinfo>
 #include <type_traits>
 #include <unordered_map>
@@ -98,7 +98,14 @@ namespace _eventus_util {
 
     template<typename T>
     std::vector<std::unique_ptr<handler_t<T>>>* handlers::get() {
-        return any_t::cast<std::vector<std::unique_ptr<handler_t<T>>>*>(*this);
+        try {
+            return any_t::cast<std::vector<std::unique_ptr<handler_t<T>>>*>(*this);
+        }
+        catch (std::bad_cast ex) {
+            if (get_num_params<T>() == NUM_PARAMS)
+                throw ex;
+            throw std::invalid_argument("Previous operations on this event type used a different number of arguments");
+        }
     }
 }
 

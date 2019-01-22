@@ -59,14 +59,14 @@ TEST_CASE("works with different argument types", "[arguments]") {
         eq.add_handler("test0", []() {
             return;
         });
-        REQUIRE_THROWS_AS(eq.fire("test0", "test"), bad_cast);
+        REQUIRE_THROWS_AS(eq.fire("test0", "test"), invalid_argument);
 
-        eq.add_handler<int>("test1", [](int i) {
+        eq.add_handler<int>("test1", [](int) {
             return;
         });
-        REQUIRE_THROWS_AS(eq.fire("test1"), bad_cast);
+        REQUIRE_THROWS_AS(eq.fire("test1"), invalid_argument);
 
-        eq.add_handler<string>("test2", [](string s) {
+        eq.add_handler<string>("test2", [](string) {
             return;
         });
         REQUIRE_THROWS_AS(eq.fire("test2", 3), bad_cast);
