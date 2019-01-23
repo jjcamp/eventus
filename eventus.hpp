@@ -1,7 +1,13 @@
-/*
-* eventus
-* A simple yet powerful event system.
+/*! @mainpage
+* @author John J. Camp
+*
+* @ref README.md "Getting Started"
+*
+* @ref eventus.hpp "Reference"
 */
+
+/// @file
+
 #pragma once
 
 #include <algorithm>
@@ -19,10 +25,10 @@ namespace _eventus_util {
 }
 
 namespace eventus {
-    // Receives and dispatches events
+    /// Receives and dispatches events
     template<typename event_type> class event_queue;
 
-    // Contains information about a handler
+    /// A handle to an event handler object
     template<typename event_type, typename T> class handler_info;
 }
 
@@ -105,7 +111,7 @@ namespace _eventus_util {
 }
 
 namespace eventus {
-    // A std::function with a void return type
+    /// Alias for `std::function<void(T)>` or `std::function<void()>`.
     template<typename T> using handler = _eventus_util::handler_t<T>;
     using _eventus_util::handlers;
 
@@ -131,31 +137,62 @@ namespace eventus {
             _handler { event_handler } {}
 
     public:
+        /// Thrown when trying to remove an event handler which no longer exists.
         class handler_removed : std::exception {};
 
+        /// Gets the event the handler is attached to.
         const event_type& event() const { return _event; }
 
+        /// Tests to see if the event handler still exists.
         bool removed() const { return _handler != nullptr; }
     };
 
     template<typename event_type>
     class event_queue {
     public:
+        /*! @brief Creates an `event_queue` instance.
+         *
+         * @tparam event_type The type used to delineate events.
+         * @bug Scoped `enum` does not currently work (unscoped does).
+         */
         event_queue() = default;
 
-        // Adds an event handler which listens for the event and has an input parameter of type T.
+        /*! @brief Adds an event handler which listens for the event and has an input parameter of type T.
+         *
+         *  @throws std::invalid_argument A previous call to @ref add_handler for the same event had a different number
+         *  of parameters.
+         *  @throws std::bad_cast A previous call to @ref add_handler for the same event used different argument types.
+         */
         template<typename T> handler_info<event_type, T> add_handler(event_type&& event, handler<T> event_handler);
 
-        // Adds an event handler which listens for the event and has no input parameter.
+        /*! @brief Adds an event handler which listens for the event and has no input parameter.
+         *
+         *  @throws std::invalid_argument A previous call to @ref add_handler for the same event had a different number
+         *  of parameters.
+         *  @throws std::bad_cast A previous call to @ref add_handler for the same event used different argument types.
+         */
         handler_info<event_type, void> add_handler(event_type&& event, handler<void> event_handler);
 
-        // Removes an event handler.
+        /*! @brief Removes an event handler.
+         *
+         *  @throws handler_info::handler_removed The event handler has already been removed.
+         */
         template<typename T> void remove_handler(handler_info<event_type, T>& info);
 
-        // Fires an event of the specified EventType, passing along the parameter of type T.
+        /*! @brief Fires an event of the specified EventType, passing along the parameter of type T.
+         *
+         *  @throws std::invalid_argument A previous call to @ref add_handler for the same event had a different number
+         *  of parameters.
+         *  @throws std::bad_cast A previous call to @ref add_handler for the same event used different argument types.
+         */
         template<typename T> void fire(event_type&& event, T parameter);
 
-        // Fires an event of the specified EventType with no parameter.
+        /*! @brief Fires an event of the specified EventType with no parameter.
+         *
+         *  @throws std::invalid_argument A previous call to @ref add_handler for the same event had a different number
+         *  of parameters.
+         *  @throws std::bad_cast A previous call to @ref add_handler for the same event used different argument types.
+         */
         void fire(event_type&& event);
 
     private:
