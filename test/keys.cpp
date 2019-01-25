@@ -47,7 +47,7 @@ TEST_CASE("works with different key types", "[keys]") {
         eq.fire(C, 4);
     }
 
-    /* Does not yet work
+    /* Does not yet work */
     SECTION("scoped enum") {
         enum class a { B, C };
 
@@ -61,6 +61,6 @@ TEST_CASE("works with different key types", "[keys]") {
         eq.fire(a::B, 3);
         eq.fire(a::C, 4);
     }
-    */
+    //*/
 }
 

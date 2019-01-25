@@ -1,10 +1,10 @@
 /*! @mainpage
-* @author John J. Camp
-*
-* @ref README.md "Getting Started"
-*
-* @ref eventus.hpp "Reference"
-*/
+ * @author John J. Camp
+ *
+ * @ref README.md "Getting Started"
+ *
+ * @ref eventus.hpp "Reference"
+ */
 
 /// @file
 
@@ -152,7 +152,9 @@ namespace eventus {
         /*! @brief Creates an `event_queue` instance.
          *
          * @tparam event_type The type used to delineate events.
-         * @bug Scoped `enum` does not currently work (unscoped does).
+         * @attention When targeting c++11, enums and scoped enums must derive from a type that can be converted to
+         * `size_t`. When using MSVC and targeting a higher standard, use `/Zc:__cplusplus` to turn on default c++14
+         * behavior.
          */
         event_queue() = default;
 
@@ -195,18 +197,23 @@ namespace eventus {
         void fire(event_type&& event);
 
     private:
-        // Templated structs to allow the use of enums as keys
-        template<typename T, typename ENABLE = void>
-        struct key_t { typedef T type; };
+#if __cplusplus < 201402L
+        // Workaround for enums and class enums in c++11
+        struct enum_hash {
+            template<typename T> size_t operator()(T key) const { return static_cast<size_t>(key); }
+        };
         template<typename T>
-        struct key_t<T, typename enable_if<is_enum<T>::value>::type> { typedef typename underlying_type<T>::type type; };
+        using hasher = typename conditional<is_enum<T>::value, enum_hash, hash<T>>::type;
+#else
+        template<typename T> using hasher = hash<T>;
+#endif
 
         template<typename T>
         void _fire(event_type&& event, void(*d)(const handler<T>*,T*), T* param);
         template<typename T>
         void _remove_unused(vector<unique_ptr<handler<T>>>& handler_vec);
 
-        unordered_map<event_type, handlers, hash<typename key_t<event_type>::type>> events;
+        unordered_map<event_type, handlers, hasher<event_type>> events;
     };
 
     template<typename event_type>
