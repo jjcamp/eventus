@@ -58,5 +58,8 @@ Known Issues
 * MSVC: Cannot use `const char*` event type with string literals. Use
 `std::string` or another type instead.
 
-* scoped enums (enum class) cannot be used as an event type
+* When targeting c++11, enums and scoped enums must derive from a type that can
+  be converted to `size_t`. When using MSVC and targeting a higher standard, use
+  `/Zc:__cplusplus` to turn on default c++14 behavior.
+
 
