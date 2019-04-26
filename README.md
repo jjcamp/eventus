@@ -2,6 +2,8 @@ eventus [![Build Status](https://travis-ci.org/jjcamp/eventus.svg?branch=master)
 =======
 A simple yet powerful event system.
 
+[Read the Docs](https://jjcamp.github.io/eventus/index.html)
+
 Requirements
 ------------
 * C++11
